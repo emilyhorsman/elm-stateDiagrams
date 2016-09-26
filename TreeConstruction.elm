@@ -79,7 +79,8 @@ states =
     , ( InHead, ( -200, 260 ) )
     , ( AfterHead, ( -200, 210 ) )
     , ( Text, (0, 0) )
-    , ( InTemplate, (50, 50) )
+    , ( InTemplate, (0, 210) )
+    , ( InBody, (-200, 160) )
     ]
 
 
@@ -139,7 +140,12 @@ transitions =
       )
     , ( processStartTemplateTag
       , "<template>"
-      , [ ( InHead, (-80, 100 ) )
+      , [ ( InHead, (-100, 220 ) )
+        ]
+      )
+    , ( processStartBodyTag
+      , "<body>"
+      , [ ( AfterHead, ( -200, 187) )
         ]
       )
     ]
@@ -226,6 +232,14 @@ processEndHeadToken t =
         otherwise ->
             otherwise
 
+processStartBodyTag t =
+    case t of
+        AfterHead ->
+            InBody
+
+        otherwise ->
+            otherwise
+
 processStartScriptTag t =
     case t of
         InHead ->
@@ -263,6 +277,8 @@ view model =
         [ viewStateDiagram states transitions (Just model.state) (Just model.transition)
         , rectangle 220 80 |> outlined (dashed 1) black |> move (-190, 335)
         , text "“valid start | end” refers to an any other unhandled, valid start or end tag token" |> filled black |> move (-350, -350)
+        , circle 3 |> filled black
+        , circle 3 |> filled black |> move (0, 100)
         ]
 
 
