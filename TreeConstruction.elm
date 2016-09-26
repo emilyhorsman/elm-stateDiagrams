@@ -103,11 +103,6 @@ processHtmlToken t =
             otherwise
 
 
-updateState : State -> State
-updateState t =
-    t
-
-
 update msg model =
     model
 
