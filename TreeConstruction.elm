@@ -24,6 +24,7 @@ type Token
     | DOCTYPE
     | Space
     | Html
+    | Head
 
 
 
@@ -34,6 +35,22 @@ type State
     = InitialInsertion
     | BeforeHtml
     | BeforeHead
+    | InHead
+    | InHeadNoscript
+    | AfterHead
+    | InBody
+    | AfterBody
+    | Text
+    | InTable
+    | InTableText
+    | InCaption
+    | InColumnGroup
+    | InTableBody
+    | InRow
+    | InCell
+    | InSelect
+    | InTemplate
+    | InFrameset
 
 
 model =
@@ -46,9 +63,9 @@ model =
 
 
 states =
-    [ ( InitialInsertion, ( 0, 200 ) )
-    , ( BeforeHtml, ( 0, 100 ) )
-    , ( BeforeHead, ( 0, 0 ) )
+    [ ( InitialInsertion, ( 0, 360 ) )
+    , ( BeforeHtml, ( 0, 310 ) )
+    , ( BeforeHead, ( 0, 260 ) )
     ]
 
 
@@ -60,19 +77,19 @@ states =
 transitions =
     [ ( processVoidToken
       , "comment"
-      , [ ( InitialInsertion, ( 120, 210 ) )
-        , ( BeforeHtml, ( 120, 110 ) )
-        , ( BeforeHead, ( 120, 0 ) )
+      , [ ( InitialInsertion, ( 120, 370 ) )
+        , ( BeforeHtml, ( 120, 320 ) )
+        , ( BeforeHead, ( 120, 270 ) )
         ]
       )
     , ( processDoctypeToken
       , "DOCTYPE"
-      , [ ( InitialInsertion, ( 0, 150 ) )
+      , [ ( InitialInsertion, ( 0, 337 ) )
         ]
       )
     , ( processHtmlToken
       , "html"
-      , [ ( BeforeHtml, ( 0, 50 ) )
+      , [ ( BeforeHtml, ( 0, 290 ) )
         ]
       )
     ]
