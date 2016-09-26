@@ -68,34 +68,45 @@ states =
 
 
 transitions =
-    [ ( updateState
+    [ ( processVoidToken
       , "comment"
       , [ ( InitialInsertion, ( 120, 210 ) )
         , ( BeforeHtml, ( 120, 110 ) )
         , ( BeforeHead, ( 120, 0 ) )
         ]
+      ),
+      ( processDoctypeToken
+      , "DOCTYPE"
+      , [ (InitialInsertion, (0, 150) )
+        ]
+      ),
+      ( processHtmlToken
+      , "html"
+      , [ (BeforeHtml, (0, 50) )
+        ]
       )
     ]
 
 
+processVoidToken : State -> State
+processVoidToken t = t
 
-{-
-   Using the state diagrams library requires us to write a function
-   containing the instructions for updating the state. This function
-   takes a State and gives us back a new State.
+processDoctypeToken : State -> State
+processDoctypeToken t =
+    case t of
+        InitialInsertion -> BeforeHtml
+        otherwise -> otherwise
 
-   For a traffic light, this is fairly trivial.
-       - A Green light turns Yellow
-       - A Yellow light turns Red
-       - A Red light turns Green
--}
+
+processHtmlToken : State -> State
+processHtmlToken t =
+    case t of
+        BeforeHtml -> BeforeHead
+        otherwise -> otherwise
 
 
 updateState : State -> State
-updateState t =
-    case t of
-        otherwise ->
-            otherwise
+updateState t = t
 
 
 update msg model =
