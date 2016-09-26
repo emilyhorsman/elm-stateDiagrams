@@ -36,7 +36,9 @@ type Token
 
 
 type State
-    = InitialInsertion
+    = DownloadedInputStream
+    | Tokenized
+    | InitialInsertion
     | BeforeHtml
     | BeforeHead
     | InHead
@@ -69,7 +71,9 @@ model =
 
 
 states =
-    [ ( InitialInsertion, ( 0, 360 ) )
+    [ ( DownloadedInputStream, (-200, 360) )
+    , ( Tokenized, (-200, 310) )
+    , ( InitialInsertion, ( 0, 360 ) )
     , ( BeforeHtml, ( 0, 310 ) )
     , ( BeforeHead, ( 0, 260 ) )
     ]
@@ -81,7 +85,17 @@ states =
 
 
 transitions =
-    [ ( processVoidToken
+    [ ( tokenize
+      , "tokenize"
+      , [ ( DownloadedInputStream, ( -200, 337 ) )
+        ]
+      )
+    , ( beginTreeConstruction
+      , "begin tree"
+      , [ ( Tokenized, ( -100, 330 ) )
+        ]
+      )
+    , ( processVoidToken
       , "comment"
       , [ ( InitialInsertion, ( 100, 370 ) )
         , ( BeforeHtml, ( 90, 320 ) )
@@ -99,6 +113,26 @@ transitions =
         ]
       )
     ]
+
+
+tokenize : State -> State
+tokenize t =
+    case t of
+        DownloadedInputStream ->
+            Tokenized
+
+        otherwise ->
+            otherwise
+
+
+beginTreeConstruction : State -> State
+beginTreeConstruction t =
+    case t of
+        Tokenized ->
+            InitialInsertion
+
+        otherwise ->
+            otherwise
 
 
 processEndOfFileToken : State -> State
