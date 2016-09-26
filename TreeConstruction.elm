@@ -72,21 +72,21 @@ model =
 
 
 states =
-    [ ( DownloadedInputStream, (-200, 360) )
-    , ( Tokenized, (-200, 310) )
-    , ( Constructed, (200, 360) )
+    [ ( DownloadedInputStream, ( -200, 360 ) )
+    , ( Tokenized, ( -200, 310 ) )
+    , ( Constructed, ( 200, 360 ) )
     , ( InitialInsertion, ( 0, 360 ) )
     , ( BeforeHtml, ( 0, 310 ) )
     , ( BeforeHead, ( 0, 260 ) )
     , ( InHead, ( -200, 260 ) )
     , ( AfterHead, ( -200, 210 ) )
-    , ( Text, (-200, -200) )
-    , ( InTemplate, (0, 210) )
-    , ( InFrameset, (80, 140) )
-    , ( InTable, (0, 30) )
-    , ( InSelect, (0, 180) )
-    , ( InBody, (-200, 160) )
-    , ( AfterBody, (-200, 110) )
+    , ( Text, ( -200, -200 ) )
+    , ( InTemplate, ( 0, 210 ) )
+    , ( InFrameset, ( 80, 140 ) )
+    , ( InTable, ( 0, 30 ) )
+    , ( InSelect, ( 0, 180 ) )
+    , ( InBody, ( -200, 160 ) )
+    , ( AfterBody, ( -200, 110 ) )
     ]
 
 
@@ -141,27 +141,27 @@ transitions =
       )
     , ( processStartScriptTag
       , "<script>"
-      , [ ( InBody, (-300, 50) )
+      , [ ( InBody, ( -300, 50 ) )
         ]
       )
     , ( processEndScriptTag
       , "</script>"
-      , [ ( Text, (-90, 50) )
+      , [ ( Text, ( -90, 50 ) )
         ]
       )
     , ( processStartTemplateTag
       , "<template>"
-      , [ ( InHead, (-100, 220 ) )
+      , [ ( InHead, ( -100, 220 ) )
         ]
       )
     , ( processStartBodyTag
       , "<body>"
-      , [ ( AfterHead, ( -200, 187) )
+      , [ ( AfterHead, ( -200, 187 ) )
         ]
       )
     , ( processEndBodyTag
       , "</body>"
-      , [ ( InBody, (-200, 137) )
+      , [ ( InBody, ( -200, 137 ) )
         ]
       )
     , ( processStartFramesetTag
@@ -176,27 +176,27 @@ transitions =
       )
     , ( processStartTableTag
       , "<table>"
-      , [ ( InBody, ( -110, 140) )
+      , [ ( InBody, ( -110, 140 ) )
         ]
       )
     , ( processStartSelectTag
       , "<select>"
-      , [ ( InBody, (-110, 190) )
+      , [ ( InBody, ( -110, 190 ) )
         ]
       )
     , ( processEndSelectTag
       , "</select>"
-      , [ ( InSelect, (-110, 140) )
+      , [ ( InSelect, ( -110, 140 ) )
         ]
       )
     , ( processStartTextareaTag
       , "<textarea>"
-      , [ ( InBody, (-270, 0) )
+      , [ ( InBody, ( -270, 0 ) )
         ]
       )
     , ( processEndTextareaTag
       , "</textarea>"
-      , [ ( Text, (-120, 0) )
+      , [ ( Text, ( -120, 0 ) )
         ]
       )
     ]
@@ -223,7 +223,9 @@ beginTreeConstruction t =
 
 
 processEndOfFileToken : State -> State
-processEndOfFileToken t = Constructed
+processEndOfFileToken t =
+    Constructed
+
 
 processVoidToken : State -> State
 processVoidToken t =
@@ -268,6 +270,7 @@ processStartHeadToken t =
         otherwise ->
             otherwise
 
+
 processEndHeadToken t =
     case t of
         InHead ->
@@ -275,6 +278,7 @@ processEndHeadToken t =
 
         otherwise ->
             otherwise
+
 
 processStartBodyTag t =
     case t of
@@ -284,6 +288,7 @@ processStartBodyTag t =
         otherwise ->
             otherwise
 
+
 processEndBodyTag t =
     case t of
         InBody ->
@@ -291,6 +296,7 @@ processEndBodyTag t =
 
         otherwise ->
             otherwise
+
 
 processStartScriptTag t =
     case t of
@@ -300,6 +306,7 @@ processStartScriptTag t =
         otherwise ->
             otherwise
 
+
 processEndScriptTag t =
     case t of
         Text ->
@@ -307,6 +314,7 @@ processEndScriptTag t =
 
         otherwise ->
             otherwise
+
 
 processStartTemplateTag t =
     case t of
@@ -316,6 +324,7 @@ processStartTemplateTag t =
         otherwise ->
             otherwise
 
+
 processStartTextareaTag t =
     case t of
         InBody ->
@@ -323,6 +332,7 @@ processStartTextareaTag t =
 
         otherwise ->
             otherwise
+
 
 processEndTextareaTag t =
     case t of
@@ -332,6 +342,7 @@ processEndTextareaTag t =
         otherwise ->
             otherwise
 
+
 processStartFramesetTag t =
     case t of
         InBody ->
@@ -339,6 +350,7 @@ processStartFramesetTag t =
 
         otherwise ->
             otherwise
+
 
 processEndFramesetTag t =
     case t of
@@ -348,6 +360,7 @@ processEndFramesetTag t =
         otherwise ->
             otherwise
 
+
 processStartTableTag t =
     case t of
         InBody ->
@@ -355,6 +368,7 @@ processStartTableTag t =
 
         otherwise ->
             otherwise
+
 
 processStartSelectTag t =
     case t of
@@ -364,6 +378,7 @@ processStartSelectTag t =
         otherwise ->
             otherwise
 
+
 processEndSelectTag t =
     case t of
         InSelect ->
@@ -371,6 +386,7 @@ processEndSelectTag t =
 
         otherwise ->
             otherwise
+
 
 processAnyStartTag t =
     case t of
@@ -389,10 +405,11 @@ update msg model =
 
 
 view model =
-    collage 1024 760
+    collage 1024
+        760
         [ viewStateDiagram states transitions (Just model.state) (Just model.transition)
-        , rectangle 220 80 |> outlined (dashed 1) black |> move (-190, 335)
-        , text "“valid start | end” refers to an any other unhandled, valid start or end tag token" |> filled black |> move (-350, -350)
+        , rectangle 220 80 |> outlined (dashed 1) black |> move ( -190, 335 )
+        , text "“valid start | end” refers to an any other unhandled, valid start or end tag token" |> filled black |> move ( -350, -350 )
         ]
 
 
