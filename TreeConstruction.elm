@@ -21,6 +21,7 @@ type Msg
 
 type Token
     = Comment
+    | EOF
     | DOCTYPE
     | Space
     | StartHtml
@@ -58,7 +59,7 @@ type State
     | InTemplate
     | InFrameset
     | AfterAfterBody
-    | FinishedConstruction
+    | Constructed
 
 
 model =
@@ -73,14 +74,18 @@ model =
 states =
     [ ( DownloadedInputStream, (-200, 360) )
     , ( Tokenized, (-200, 310) )
+    , ( Constructed, (200, 360) )
     , ( InitialInsertion, ( 0, 360 ) )
     , ( BeforeHtml, ( 0, 310 ) )
     , ( BeforeHead, ( 0, 260 ) )
     , ( InHead, ( -200, 260 ) )
     , ( AfterHead, ( -200, 210 ) )
-    , ( Text, (0, 0) )
+    , ( Text, (-200, -200) )
     , ( InTemplate, (0, 210) )
+    , ( InFrameset, (0, 160) )
+    , ( InTable, (0, 110) )
     , ( InBody, (-200, 160) )
+    , ( AfterBody, (-200, 110) )
     ]
 
 
@@ -135,7 +140,7 @@ transitions =
       )
     , ( processStartScriptTag
       , "<script>"
-      , [ ( InHead, (-80, 50) )
+      , [ ( InHead, (-300, 50) )
         ]
       )
     , ( processStartTemplateTag
@@ -146,6 +151,26 @@ transitions =
     , ( processStartBodyTag
       , "<body>"
       , [ ( AfterHead, ( -200, 187) )
+        ]
+      )
+    , ( processEndBodyTag
+      , "</body>"
+      , [ ( InBody, (-200, 137) )
+        ]
+      )
+    , ( processStartFramesetTag
+      , "<frameset>"
+      , [ ( InBody, ( -110, 160 ) )
+        ]
+      )
+    , ( processStartTableTag
+      , "<table>"
+      , [ ( InBody, ( -110, 120) )
+        ]
+      )
+    , ( processStartTextareaTag
+      , "<textarea>"
+      , [ ( InBody, (-270, 0) )
         ]
       )
     ]
@@ -172,14 +197,7 @@ beginTreeConstruction t =
 
 
 processEndOfFileToken : State -> State
-processEndOfFileToken t =
-    case t of
-        AfterBody ->
-            FinishedConstruction
-
-        otherwise ->
-            otherwise
-
+processEndOfFileToken t = Constructed
 
 processVoidToken : State -> State
 processVoidToken t =
@@ -240,6 +258,14 @@ processStartBodyTag t =
         otherwise ->
             otherwise
 
+processEndBodyTag t =
+    case t of
+        InBody ->
+            AfterBody
+
+        otherwise ->
+            otherwise
+
 processStartScriptTag t =
     case t of
         InHead ->
@@ -252,6 +278,30 @@ processStartTemplateTag t =
     case t of
         InHead ->
             InTemplate
+
+        otherwise ->
+            otherwise
+
+processStartTextareaTag t =
+    case t of
+        InBody ->
+            Text
+
+        otherwise ->
+            otherwise
+
+processStartFramesetTag t =
+    case t of
+        InBody ->
+            InFrameset
+
+        otherwise ->
+            otherwise
+
+processStartTableTag t =
+    case t of
+        InBody ->
+            InTable
 
         otherwise ->
             otherwise
