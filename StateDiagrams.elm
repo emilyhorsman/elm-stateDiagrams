@@ -46,6 +46,11 @@ displayState (state,pos) = {node = state, position = toXY pos, size = mkSize (si
 extractStatePosSize : ViewNode a -> (String, ((Float, Float), (Float, Float)))
 extractStatePosSize viewNode = (toString viewNode.node, (xy viewNode.position,xy viewNode.size))
 
+labelCenteredXPos : ViewNode a -> Float
+labelCenteredXPos viewNode
+    = (viewNode.size.x / -2)
+    + (toString viewNode.node |> length |> toFloat |> (*) 1.5)
+
 drawWithActive : Maybe a -> ViewNode a -> Shape s
 drawWithActive activeState viewNode
   = group ((if activeState == Just viewNode.node
@@ -58,7 +63,7 @@ drawWithActive activeState viewNode
               ++ [ outlined (solid 2.0)
                             (black)
                             (oval viewNode.size.x viewNode.size.y)
-                 , move ((viewNode.size.x / -2) + (toString viewNode.node |> length |> toFloat |> (*) 1.5), -4.0) (displayNode (text (toString viewNode.node)))
+                 , move (labelCenteredXPos viewNode, -4.0) (displayNode (text (toString viewNode.node)))
                  ]
           )
       |> move (xy viewNode.position)
