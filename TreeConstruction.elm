@@ -82,9 +82,9 @@ states =
     , ( AfterHead, ( -200, 210 ) )
     , ( Text, (-200, -200) )
     , ( InTemplate, (0, 210) )
-    , ( InFrameset, (0, 160) )
-    , ( InTable, (0, 130) )
-    , ( InSelect, (0, 100) )
+    , ( InFrameset, (80, 140) )
+    , ( InTable, (0, 30) )
+    , ( InSelect, (0, 180) )
     , ( InBody, (-200, 160) )
     , ( AfterBody, (-200, 110) )
     ]
@@ -141,7 +141,12 @@ transitions =
       )
     , ( processStartScriptTag
       , "<script>"
-      , [ ( InHead, (-300, 50) )
+      , [ ( InBody, (-300, 50) )
+        ]
+      )
+    , ( processEndScriptTag
+      , "</script>"
+      , [ ( Text, (-90, 50) )
         ]
       )
     , ( processStartTemplateTag
@@ -161,7 +166,12 @@ transitions =
       )
     , ( processStartFramesetTag
       , "<frameset>"
-      , [ ( InBody, ( -110, 160 ) )
+      , [ ( InBody, ( -20, 160 ) )
+        ]
+      )
+    , ( processEndFramesetTag
+      , "</frameset>"
+      , [ ( InFrameset, ( -20, 140 ) )
         ]
       )
     , ( processStartTableTag
@@ -171,12 +181,22 @@ transitions =
       )
     , ( processStartSelectTag
       , "<select>"
-      , [ ( InBody, (-110, 120) )
+      , [ ( InBody, (-110, 190) )
+        ]
+      )
+    , ( processEndSelectTag
+      , "</select>"
+      , [ ( InSelect, (-110, 140) )
         ]
       )
     , ( processStartTextareaTag
       , "<textarea>"
       , [ ( InBody, (-270, 0) )
+        ]
+      )
+    , ( processEndTextareaTag
+      , "</textarea>"
+      , [ ( Text, (-120, 0) )
         ]
       )
     ]
@@ -274,8 +294,16 @@ processEndBodyTag t =
 
 processStartScriptTag t =
     case t of
-        InHead ->
+        InBody ->
             Text
+
+        otherwise ->
+            otherwise
+
+processEndScriptTag t =
+    case t of
+        Text ->
+            InBody
 
         otherwise ->
             otherwise
@@ -296,10 +324,26 @@ processStartTextareaTag t =
         otherwise ->
             otherwise
 
+processEndTextareaTag t =
+    case t of
+        Text ->
+            InBody
+
+        otherwise ->
+            otherwise
+
 processStartFramesetTag t =
     case t of
         InBody ->
             InFrameset
+
+        otherwise ->
+            otherwise
+
+processEndFramesetTag t =
+    case t of
+        InFrameset ->
+            InBody
 
         otherwise ->
             otherwise
@@ -316,6 +360,14 @@ processStartSelectTag t =
     case t of
         InBody ->
             InSelect
+
+        otherwise ->
+            otherwise
+
+processEndSelectTag t =
+    case t of
+        InSelect ->
+            InBody
 
         otherwise ->
             otherwise
