@@ -77,9 +77,9 @@ states =
 transitions =
     [ ( processVoidToken
       , "comment"
-      , [ ( InitialInsertion, ( 120, 370 ) )
-        , ( BeforeHtml, ( 120, 320 ) )
-        , ( BeforeHead, ( 120, 270 ) )
+      , [ ( InitialInsertion, ( 100, 370 ) )
+        , ( BeforeHtml, ( 90, 320 ) )
+        , ( BeforeHead, ( 90, 270 ) )
         ]
       )
     , ( processDoctypeToken
