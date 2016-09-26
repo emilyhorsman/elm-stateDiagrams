@@ -92,7 +92,7 @@ transitions =
       )
     , ( beginTreeConstruction
       , "begin tree"
-      , [ ( Tokenized, ( -100, 330 ) )
+      , [ ( Tokenized, ( -120, 330 ) )
         ]
       )
     , ( processVoidToken
@@ -186,7 +186,10 @@ update msg model =
 
 
 view model =
-    collage 1024 760 [ viewStateDiagram states transitions (Just model.state) (Just model.transition) ]
+    collage 1024 760
+        [ viewStateDiagram states transitions (Just model.state) (Just model.transition)
+        , rectangle 220 80 |> outlined (dashed 1) black |> move (-190, 335)
+        ]
 
 
 main =
