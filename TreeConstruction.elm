@@ -1,3 +1,13 @@
+{- A state diagram representing the tree construction of an HTML document.
+   The states represent the mode of the construction. The transitions represent
+   received tokens. This diagram thus reflects the process occurrring after
+   the input stream has been tokenized.
+
+   See the HTML 5 spec for reference:
+   https://www.w3.org/TR/html5/syntax.html#parsing-main-inhtml
+-}
+
+
 module Main exposing (..)
 
 import List
@@ -5,15 +15,8 @@ import GraphicSVG exposing (..)
 import StateDiagrams exposing (..)
 
 
-{-
-   First, we define the types required for our
-   state diagram.
-
-   *Msg    a type required by GraphicsSVG to keep track of
-           the state of the program
-   *State  For a traffic light, it can only exist in 1 out of
-           3 possible states
--}
+type Msg
+    = Tick Float GetKeyState
 
 
 type Token
@@ -23,8 +26,8 @@ type Token
     | Html
 
 
-type Msg
-    = Tick Float GetKeyState
+
+-- The current mode of tree construction in our document.
 
 
 type State
@@ -33,31 +36,13 @@ type State
     | BeforeHead
 
 
-
-{-
-   Now we define a simplified initial Model. We use a record type
-   with 3 fields to keep track of the state.
-
-   *tick       simplified measurement of some change in time
-   *state      the current state of a trafficlight
-   *transition the transition leading to the current state
--}
-
-
 model =
     { tick = 0
     , state = InitialInsertion
-    , transition = ( InitialInsertion, "" )
+    , transition =
+        ( InitialInsertion, "" )
+        -- Provide what is essentially a void transition, since one is expected.
     }
-
-
-
-{-
-   "states" and "transitions" contain what the StateDiagrams
-   library will draw to the screen. Both of these lists contain
-   something names to draw to the screen and the locations of
-   where they will be drawn
--}
 
 
 states =
@@ -67,6 +52,11 @@ states =
     ]
 
 
+
+-- Provide a List of tuples representing the following.
+-- ( transition handler function, label, list of (state, label position) )
+
+
 transitions =
     [ ( processVoidToken
       , "comment"
@@ -74,39 +64,48 @@ transitions =
         , ( BeforeHtml, ( 120, 110 ) )
         , ( BeforeHead, ( 120, 0 ) )
         ]
-      ),
-      ( processDoctypeToken
+      )
+    , ( processDoctypeToken
       , "DOCTYPE"
-      , [ (InitialInsertion, (0, 150) )
+      , [ ( InitialInsertion, ( 0, 150 ) )
         ]
-      ),
-      ( processHtmlToken
+      )
+    , ( processHtmlToken
       , "html"
-      , [ (BeforeHtml, (0, 50) )
+      , [ ( BeforeHtml, ( 0, 50 ) )
         ]
       )
     ]
 
 
 processVoidToken : State -> State
-processVoidToken t = t
+processVoidToken t =
+    t
+
 
 processDoctypeToken : State -> State
 processDoctypeToken t =
     case t of
-        InitialInsertion -> BeforeHtml
-        otherwise -> otherwise
+        InitialInsertion ->
+            BeforeHtml
+
+        otherwise ->
+            otherwise
 
 
 processHtmlToken : State -> State
 processHtmlToken t =
     case t of
-        BeforeHtml -> BeforeHead
-        otherwise -> otherwise
+        BeforeHtml ->
+            BeforeHead
+
+        otherwise ->
+            otherwise
 
 
 updateState : State -> State
-updateState t = t
+updateState t =
+    t
 
 
 update msg model =
