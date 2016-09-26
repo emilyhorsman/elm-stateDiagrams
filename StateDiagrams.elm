@@ -58,7 +58,7 @@ drawWithActive activeState viewNode
               ++ [ outlined (solid 2.0)
                             (black)
                             (oval viewNode.size.x viewNode.size.y)
-                 , move (-12.0, -4.0) (displayNode (text (toString viewNode.node)))
+                 , move (toString viewNode.node |> length |> toFloat |> (*) -2, -4.0) (displayNode (text (toString viewNode.node)))
                  ]
           )
       |> move (xy viewNode.position)
