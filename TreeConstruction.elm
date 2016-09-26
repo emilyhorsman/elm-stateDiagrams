@@ -76,6 +76,9 @@ states =
     , ( InitialInsertion, ( 0, 360 ) )
     , ( BeforeHtml, ( 0, 310 ) )
     , ( BeforeHead, ( 0, 260 ) )
+    , ( InHead, ( -200, 260 ) )
+    , ( AfterHead, ( -200, 210 ) )
+    , ( Text, (0, 0) )
     ]
 
 
@@ -103,13 +106,33 @@ transitions =
         ]
       )
     , ( processDoctypeToken
-      , "DOCTYPE"
+      , "<!DOCTYPE>"
       , [ ( InitialInsertion, ( 0, 337 ) )
         ]
       )
     , ( processStartHtmlToken
-      , "html"
+      , "<html>"
       , [ ( BeforeHtml, ( 0, 290 ) )
+        ]
+      )
+    , ( processStartHeadToken
+      , "<head>"
+      , [ ( BeforeHead, ( -100, 250 ) )
+        ]
+      )
+    , ( processEndHeadToken
+      , "</head>"
+      , [ ( InHead, ( -200, 237 ) )
+        ]
+      )
+    , ( processAnyTag
+      , "valid tag"
+      , [ ( BeforeHead, ( -100, 270 ) )
+        ]
+      )
+    , ( processStartScriptTag
+      , "<script>"
+      , [ ( InHead, (-80, 50) )
         ]
       )
     ]
@@ -179,6 +202,38 @@ processEndHtmlToken t =
         otherwise ->
             otherwise
 
+
+processStartHeadToken t =
+    case t of
+        BeforeHead ->
+            InHead
+
+        otherwise ->
+            otherwise
+
+processEndHeadToken t =
+    case t of
+        InHead ->
+            AfterHead
+
+        otherwise ->
+            otherwise
+
+processStartScriptTag t =
+    case t of
+        InHead ->
+            Text
+
+        otherwise ->
+            otherwise
+
+processAnyTag t =
+    case t of
+        BeforeHead ->
+            InHead
+
+        otherwise ->
+            otherwise
 
 
 update msg model =
