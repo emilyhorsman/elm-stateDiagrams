@@ -23,8 +23,12 @@ type Token
     = Comment
     | DOCTYPE
     | Space
-    | Html
-    | Head
+    | StartHtml
+    | EndHtml
+    | StartHead
+    | EndHead
+    | StartBody
+    | EndBody
 
 
 
@@ -51,6 +55,8 @@ type State
     | InSelect
     | InTemplate
     | InFrameset
+    | AfterAfterBody
+    | FinishedConstruction
 
 
 model =
@@ -87,12 +93,22 @@ transitions =
       , [ ( InitialInsertion, ( 0, 337 ) )
         ]
       )
-    , ( processHtmlToken
+    , ( processStartHtmlToken
       , "html"
       , [ ( BeforeHtml, ( 0, 290 ) )
         ]
       )
     ]
+
+
+processEndOfFileToken : State -> State
+processEndOfFileToken t =
+    case t of
+        AfterBody ->
+            FinishedConstruction
+
+        otherwise ->
+            otherwise
 
 
 processVoidToken : State -> State
@@ -110,14 +126,25 @@ processDoctypeToken t =
             otherwise
 
 
-processHtmlToken : State -> State
-processHtmlToken t =
+processStartHtmlToken : State -> State
+processStartHtmlToken t =
     case t of
         BeforeHtml ->
             BeforeHead
 
         otherwise ->
             otherwise
+
+
+processEndHtmlToken : State -> State
+processEndHtmlToken t =
+    case t of
+        AfterBody ->
+            AfterAfterBody
+
+        otherwise ->
+            otherwise
+
 
 
 update msg model =
