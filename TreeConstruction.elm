@@ -114,7 +114,7 @@ update msg model =
 
 
 view model =
-    collage 768 760 [ viewStateDiagram states transitions (Just model.state) (Just model.transition) ]
+    collage 1024 760 [ viewStateDiagram states transitions (Just model.state) (Just model.transition) ]
 
 
 main =
