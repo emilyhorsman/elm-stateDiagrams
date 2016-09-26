@@ -83,7 +83,8 @@ states =
     , ( Text, (-200, -200) )
     , ( InTemplate, (0, 210) )
     , ( InFrameset, (0, 160) )
-    , ( InTable, (0, 110) )
+    , ( InTable, (0, 130) )
+    , ( InSelect, (0, 100) )
     , ( InBody, (-200, 160) )
     , ( AfterBody, (-200, 110) )
     ]
@@ -165,7 +166,12 @@ transitions =
       )
     , ( processStartTableTag
       , "<table>"
-      , [ ( InBody, ( -110, 120) )
+      , [ ( InBody, ( -110, 140) )
+        ]
+      )
+    , ( processStartSelectTag
+      , "<select>"
+      , [ ( InBody, (-110, 120) )
         ]
       )
     , ( processStartTextareaTag
@@ -306,6 +312,14 @@ processStartTableTag t =
         otherwise ->
             otherwise
 
+processStartSelectTag t =
+    case t of
+        InBody ->
+            InSelect
+
+        otherwise ->
+            otherwise
+
 processAnyStartTag t =
     case t of
         BeforeHead ->
@@ -327,8 +341,6 @@ view model =
         [ viewStateDiagram states transitions (Just model.state) (Just model.transition)
         , rectangle 220 80 |> outlined (dashed 1) black |> move (-190, 335)
         , text "“valid start | end” refers to an any other unhandled, valid start or end tag token" |> filled black |> move (-350, -350)
-        , circle 3 |> filled black
-        , circle 3 |> filled black |> move (0, 100)
         ]
 
 
