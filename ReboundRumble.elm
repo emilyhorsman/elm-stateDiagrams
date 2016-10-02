@@ -35,13 +35,34 @@ type Feeder
     | Off
 
 
-startGame state =
+type RobotDirection
+    = LeftPartner
+    | RightPartner
+    | Hoops
+
+
+type RobotPosition
+    = Facing RobotDirection
+    | ShootingLine
+
+
+startFeederGame state =
     case state of
         Off ->
             On Forward
 
         otherwise ->
             otherwise
+
+
+startRobotPositionGame state =
+    case state of
+        Facing Hoops ->
+            Facing LeftPartner
+
+        otherwise ->
+            otherwise
+
 
 collectedBalls state =
     case state of
@@ -52,6 +73,23 @@ collectedBalls state =
             otherwise
 
 
+robotPositionStates =
+    [ ( (Facing Hoops), ( 0, 0 ) )
+    , ( (Facing LeftPartner), ( -130, -40 ) )
+    , ( (Facing RightPartner), ( 130, -40 ) )
+    , ( (ShootingLine), ( 0, 60))
+    ]
+
+
+robotPositionTransitions =
+    [ ( startRobotPositionGame
+      , "start game"
+      , [ ( Facing Hoops, ( -120, -10 ) )
+        ]
+      )
+    ]
+
+
 feederStates =
     [ ( (Off), ( 0, 100 ) )
     , ( (On Forward), ( 0, 0 ) )
@@ -59,7 +97,7 @@ feederStates =
 
 
 feederTransitions =
-    [ ( startGame
+    [ ( startFeederGame
       , "start game"
       , [ ( Off, ( -25, 40 ) )
         ]
@@ -68,12 +106,13 @@ feederTransitions =
       , "collected balls"
       , [ ( On Forward, ( 25, 60 ) )
         ]
-     )
+      )
     ]
 
 
 type alias State =
     { feeder : Feeder
+    , robotPosition : RobotPosition
     }
 
 
@@ -81,9 +120,11 @@ model =
     { tick = 0
     , state =
         { feeder = Off
+        , robotPosition = Facing Hoops
         }
     , transition =
         { feeder = ( Off, "" )
+        , robotPosition = ( Facing Hoops, "" )
         }
         -- Provide what is essentially a void transition, since one is expected.
     }
@@ -103,10 +144,20 @@ viewFeeder model =
     ]
 
 
+viewRobotPosition model =
+    [ viewStateDiagram robotPositionStates
+        robotPositionTransitions
+        (Just model.state.robotPosition)
+        (Just model.transition.robotPosition)
+    ]
+
+
 view model =
     collage 1024
-        760
-        (viewFeeder model |> List.map (move ( 0, 200 )))
+        1024
+        ((viewFeeder model |> List.map (move ( 200, 350 )))
+            ++ (viewRobotPosition model |> List.map (move ( 0, 200 )))
+        )
 
 
 main =
