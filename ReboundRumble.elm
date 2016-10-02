@@ -30,9 +30,25 @@ type MotorDirection
     | Reverse
 
 
-type Feeder
+type Motor
     = On MotorDirection
     | Off
+
+
+type alias Feeder =
+    Motor
+
+
+type alias DriveTrain =
+    Motor
+
+
+type alias HoldingQuantity =
+    Int
+
+
+
+-- How many balls do we have to shoot?
 
 
 type RobotDirection
@@ -41,24 +57,23 @@ type RobotDirection
     | Hoops
 
 
-type RobotPosition
+type Position
     = Facing RobotDirection
     | ShootingLine
+
+
+type alias RobotState =
+    ( Position, HoldingQuantity, DriveTrain, DriveTrain )
+
+
+
+-- Feeder Component
 
 
 startFeederGame state =
     case state of
         Off ->
             On Forward
-
-        otherwise ->
-            otherwise
-
-
-startRobotPositionGame state =
-    case state of
-        Facing Hoops ->
-            Facing LeftPartner
 
         otherwise ->
             otherwise
@@ -71,23 +86,6 @@ collectedBalls state =
 
         otherwise ->
             otherwise
-
-
-robotPositionStates =
-    [ ( (Facing Hoops), ( 0, 0 ) )
-    , ( (Facing LeftPartner), ( -130, -40 ) )
-    , ( (Facing RightPartner), ( 130, -40 ) )
-    , ( (ShootingLine), ( 0, 60))
-    ]
-
-
-robotPositionTransitions =
-    [ ( startRobotPositionGame
-      , "start game"
-      , [ ( Facing Hoops, ( -120, -10 ) )
-        ]
-      )
-    ]
 
 
 feederStates =
@@ -103,8 +101,49 @@ feederTransitions =
         ]
       )
     , ( collectedBalls
-      , "collected balls"
+      , "reached capacity"
       , [ ( On Forward, ( 25, 60 ) )
+        ]
+      )
+    ]
+
+
+
+-- Robot State
+
+
+startRobotPositionGame state =
+    case state of
+        ( Facing Hoops, holding, Off, Off ) ->
+            ( (Facing Hoops), holding, (On Reverse), (On Forward) )
+
+        otherwise ->
+            otherwise
+
+stepRobot state =
+    case state of
+        ( Facing Hoops, holding, On Reverse, On Forward ) ->
+            ( Facing LeftPartner, holding, Off, Off )
+
+        otherwise ->
+            otherwise
+
+robotStates =
+    [ ( ( (Facing Hoops), 2, Off, Off ), ( 0, 0 ) )
+    , ( ( (Facing Hoops), 2, (On Reverse), (On Forward) ), ( -100, -40 ) )
+    , ( ( (Facing LeftPartner, 2, Off, Off ) ), (-100, -80) )
+    ]
+
+
+robotTransitions =
+    [ ( startRobotPositionGame
+      , "start game"
+      , [ ( ( (Facing Hoops), 2, Off, Off ), ( -120, -10 ) )
+        ]
+      )
+    , ( stepRobot
+      , "finishing rotating"
+      , [ ( ( (Facing Hoops), 2, On Reverse, On Forward), (-120, -70))
         ]
       )
     ]
@@ -112,7 +151,7 @@ feederTransitions =
 
 type alias State =
     { feeder : Feeder
-    , robotPosition : RobotPosition
+    , robotPosition : RobotState
     }
 
 
@@ -120,14 +159,18 @@ model =
     { tick = 0
     , state =
         { feeder = Off
-        , robotPosition = Facing Hoops
+        , robotPosition = ( (Facing Hoops), 2, Off, Off )
         }
     , transition =
         { feeder = ( Off, "" )
-        , robotPosition = ( Facing Hoops, "" )
+        , robotPosition = ( ( (Facing Hoops), 2, Off, Off ), "" )
         }
         -- Provide what is essentially a void transition, since one is expected.
     }
+
+
+
+-- Game
 
 
 update msg model =
@@ -144,9 +187,9 @@ viewFeeder model =
     ]
 
 
-viewRobotPosition model =
-    [ viewStateDiagram robotPositionStates
-        robotPositionTransitions
+viewRobot model =
+    [ viewStateDiagram robotStates
+        robotTransitions
         (Just model.state.robotPosition)
         (Just model.transition.robotPosition)
     ]
@@ -156,7 +199,7 @@ view model =
     collage 1024
         1024
         ((viewFeeder model |> List.map (move ( 200, 350 )))
-            ++ (viewRobotPosition model |> List.map (move ( 0, 200 )))
+            ++ (viewRobot model |> List.map (move ( 0, 200 )))
         )
 
 
