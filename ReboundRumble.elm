@@ -30,40 +30,23 @@ type MotorDirection
     | Reverse
 
 
-type Motor
+type Feeder
     = On MotorDirection
     | Off
 
 
-type alias Feeder =
-    Motor
+type AimingState
+    = Checking
+    | MacroAdjusting
+    | MicroAdjusting
 
 
-type alias DriveTrain =
-    Motor
-
-
-type alias HoldingQuantity =
-    Int
-
-
-
--- How many balls do we have to shoot?
-
-
-type RobotDirection
-    = LeftPartner
-    | RightPartner
-    | Hoops
-
-
-type Position
-    = Facing RobotDirection
-    | ShootingLine
-
-
-type alias RobotState =
-    ( Position, HoldingQuantity, DriveTrain, DriveTrain )
+type Robot
+    = Neutral
+    | Collecting
+    | Aiming AimingState
+    | Shooting
+    | FeedingBall
 
 
 
@@ -110,38 +93,93 @@ feederTransitions =
 -- Robot State
 
 
-startRobotPositionGame state =
+startRobotGame state =
     case state of
-        ( Facing Hoops, holding, Off, Off ) ->
-            ( (Facing Hoops), holding, (On Reverse), (On Forward) )
+        Neutral ->
+            Collecting
 
         otherwise ->
             otherwise
 
-stepRobot state =
+autonomousTimerEnds state = Neutral
+
+reachedCapacity state =
     case state of
-        ( Facing Hoops, holding, On Reverse, On Forward ) ->
-            ( Facing LeftPartner, holding, Off, Off )
+        Collecting ->
+            Aiming Checking
+
+        otherwise ->
+            otherwise
+
+collectingTimerEnds state =
+    case state of
+        Collecting ->
+            Aiming Checking
+
+        otherwise ->
+            otherwise
+
+speedReached state =
+    case state of
+        Shooting ->
+            FeedingBall
+
+        otherwise ->
+            otherwise
+
+shootingTimerEnds state =
+    case state of
+        FeedingBall ->
+            Shooting
+
+        otherwise ->
+            otherwise
+
+depletedCapacity state =
+    case state of
+        Shooting ->
+            Collecting
 
         otherwise ->
             otherwise
 
 robotStates =
-    [ ( ( (Facing Hoops), 2, Off, Off ), ( 0, 0 ) )
-    {-}, ( ( (Facing Hoops), 2, (On Reverse), (On Forward) ), ( -100, -40 ) )-}
-    , ( ( (Facing LeftPartner, 2, Off, Off ) ), (-100, -80) )
+    [ ( Neutral, (0, 0) )
+    , ( Collecting, (0, -100) )
+    , ( Aiming Checking, (100, -250) )
+    , ( Aiming MacroAdjusting, (-100, -300) )
+    , ( Aiming MicroAdjusting, (-100, -200) )
+    , ( Shooting, (0, -400) )
+    , ( FeedingBall, (0, -500) )
     ]
 
 
 robotTransitions =
-    [ ( startRobotPositionGame
+    [ ( startRobotGame
       , "start game"
-      , [ ( ( (Facing Hoops), 2, Off, Off ), ( -120, -10 ) )
+      , [ ( Neutral, ( 0, -40 ) )
         ]
       )
-    , ( stepRobot
-      , "finishing rotating"
-      , [ ( ( (Facing Hoops), 2, On Reverse, On Forward), (-120, -70))
+    , ( autonomousTimerEnds
+      , "autonomous timer ends"
+      , [ ( Collecting, ( -150, -40 ) )
+        , ( Aiming Checking, ( 200, -150 ) )
+        , ( Shooting, ( 350, -200 ) )
+        ]
+      )
+    , ( speedReached
+      , "speed reached"
+      , [ ( Shooting, ( 100, -450 ) )
+        ]
+      )
+    , ( shootingTimerEnds
+      , "shooting timer ends"
+      , [ ( FeedingBall, ( -100, -450 ) )
+        ]
+      )
+    , ( depletedCapacity
+      , "capacity depleted"
+      , [ ( Shooting, ( -300, -200 ) )
         ]
       )
     ]
@@ -149,7 +187,7 @@ robotTransitions =
 
 type alias State =
     { feeder : Feeder
-    , robotPosition : RobotState
+    , robot : Robot
     }
 
 
@@ -157,11 +195,11 @@ model =
     { tick = 0
     , state =
         { feeder = Off
-        , robotPosition = ( (Facing Hoops), 2, Off, Off )
+        , robot = Neutral
         }
     , transition =
         { feeder = ( Off, "" )
-        , robotPosition = ( ( (Facing Hoops), 2, Off, Off ), "" )
+        , robot = ( Neutral, "" )
         }
         -- Provide what is essentially a void transition, since one is expected.
     }
@@ -188,8 +226,8 @@ viewFeeder model =
 viewRobot model =
     [ viewStateDiagram robotStates
         robotTransitions
-        (Just model.state.robotPosition)
-        (Just model.transition.robotPosition)
+        (Just model.state.robot)
+        (Just model.transition.robot)
     ]
 
 
