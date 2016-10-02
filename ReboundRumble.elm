@@ -90,6 +90,8 @@ feederTransitions =
       )
     ]
 
+
+
 -- Robot State
 
 
@@ -101,7 +103,10 @@ startRobotGame state =
         otherwise ->
             otherwise
 
-autonomousTimerEnds state = Neutral
+
+autonomousTimerEnds state =
+    Neutral
+
 
 reachedCapacity state =
     case state of
@@ -111,6 +116,7 @@ reachedCapacity state =
         otherwise ->
             otherwise
 
+
 collectingTimerEnds state =
     case state of
         Collecting ->
@@ -118,6 +124,7 @@ collectingTimerEnds state =
 
         otherwise ->
             otherwise
+
 
 speedReached state =
     case state of
@@ -127,6 +134,7 @@ speedReached state =
         otherwise ->
             otherwise
 
+
 shootingTimerEnds state =
     case state of
         FeedingBall ->
@@ -134,6 +142,7 @@ shootingTimerEnds state =
 
         otherwise ->
             otherwise
+
 
 depletedCapacity state =
     case state of
@@ -143,14 +152,15 @@ depletedCapacity state =
         otherwise ->
             otherwise
 
+
 robotStates =
-    [ ( Neutral, (0, 0) )
-    , ( Collecting, (0, -100) )
-    , ( Aiming Checking, (100, -250) )
-    , ( Aiming MacroAdjusting, (-100, -300) )
-    , ( Aiming MicroAdjusting, (-100, -200) )
-    , ( Shooting, (0, -400) )
-    , ( FeedingBall, (0, -500) )
+    [ ( Neutral, ( 0, 0 ) )
+    , ( Collecting, ( 0, -100 ) )
+    , ( Aiming Checking, ( 100, -250 ) )
+    , ( Aiming MacroAdjusting, ( -100, -300 ) )
+    , ( Aiming MicroAdjusting, ( -100, -200 ) )
+    , ( Shooting, ( 0, -400 ) )
+    , ( FeedingBall, ( 0, -500 ) )
     ]
 
 
@@ -195,7 +205,7 @@ model =
     { tick = 0
     , state =
         { feeder = Off
-        , robot = Neutral
+        , robot = Collecting
         }
     , transition =
         { feeder = ( Off, "" )
@@ -207,10 +217,17 @@ model =
 
 
 -- Game
+tickHandler t state =
+    if t >= 90 then { state | robot = Neutral } else state
 
 
 update msg model =
-    model
+    case msg of
+        Tick t _ ->
+            { model
+            | tick = t
+            , state = tickHandler t model.state
+            }
 
 
 viewFeeder model =
@@ -234,7 +251,9 @@ viewRobot model =
 view model =
     collage 1024
         1024
-        ((viewFeeder model |> List.map (move ( 200, 350 )))
+        ([ text (toString model.tick) |> filled black
+         ]
+            ++ (viewFeeder model |> List.map (move ( 200, 350 )))
             ++ (viewRobot model |> List.map (move ( 0, 200 )))
         )
 
