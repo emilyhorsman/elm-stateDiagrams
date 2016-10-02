@@ -43,6 +43,14 @@ startGame state =
         otherwise ->
             otherwise
 
+collectedBalls state =
+    case state of
+        On Forward ->
+            Off
+
+        otherwise ->
+            otherwise
+
 
 feederStates =
     [ ( (Off), ( 0, 100 ) )
@@ -53,9 +61,14 @@ feederStates =
 feederTransitions =
     [ ( startGame
       , "start game"
-      , [ ( Off, ( 0, 50 ) )
+      , [ ( Off, ( -25, 40 ) )
         ]
       )
+    , ( collectedBalls
+      , "collected balls"
+      , [ ( On Forward, ( 25, 60 ) )
+        ]
+     )
     ]
 
 
@@ -85,8 +98,8 @@ viewFeeder model =
         feederTransitions
         (Just model.state.feeder)
         (Just model.transition.feeder)
-    , rectangle 120 150 |> outlined (dashed 1) black |> move ( 0, 50 )
-    , text "Feeder" |> filled black |> move ( -55, 110 )
+    , rectangle 160 150 |> outlined (dashed 1) black |> move ( 15, 50 )
+    , text "Feeder" |> filled black |> move ( -60, 110 )
     ]
 
 
