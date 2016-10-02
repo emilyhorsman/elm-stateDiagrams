@@ -96,18 +96,16 @@ feederStates =
 
 feederTransitions =
     [ ( startFeederGame
-      , "start game"
+      , "collecting started"
       , [ ( Off, ( -25, 40 ) )
         ]
       )
     , ( collectedBalls
-      , "reached capacity"
+      , "shooting complete"
       , [ ( On Forward, ( 25, 60 ) )
         ]
       )
     ]
-
-
 
 -- Robot State
 
@@ -130,7 +128,7 @@ stepRobot state =
 
 robotStates =
     [ ( ( (Facing Hoops), 2, Off, Off ), ( 0, 0 ) )
-    , ( ( (Facing Hoops), 2, (On Reverse), (On Forward) ), ( -100, -40 ) )
+    {-}, ( ( (Facing Hoops), 2, (On Reverse), (On Forward) ), ( -100, -40 ) )-}
     , ( ( (Facing LeftPartner, 2, Off, Off ) ), (-100, -80) )
     ]
 
@@ -182,8 +180,8 @@ viewFeeder model =
         feederTransitions
         (Just model.state.feeder)
         (Just model.transition.feeder)
-    , rectangle 160 150 |> outlined (dashed 1) black |> move ( 15, 50 )
-    , text "Feeder" |> filled black |> move ( -60, 110 )
+    , rectangle 200 150 |> outlined (dashed 1) black |> move ( 0, 50 )
+    , text "Feeder" |> filled black |> move ( -95, 110 )
     ]
 
 
