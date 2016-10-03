@@ -268,7 +268,7 @@ robotAimed model =
 directionTowardHoop dir =
     if dir > pi then
         -1
-    else if dir < pi && dir > 0 then
+    else if dir < pi && dir > -0.004 then
         1
     else if dir < -pi then
         1
