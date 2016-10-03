@@ -315,7 +315,10 @@ moveRobot ( dX, dY ) model =
         model
 
 
-type CircleCircle = Intersects | Outside
+type CircleCircle
+    = Intersects
+    | Outside
+
 
 circleCircleCheck check r1 x1 y1 r2 ( x2, y2 ) =
     let
@@ -400,8 +403,11 @@ startCollectingSequence model =
 
 collectBalls model =
     let
-        fieldBalls = removeCollectedFieldBalls model
-        increase = (List.length model.fieldBalls) - (List.length fieldBalls)
+        fieldBalls =
+            removeCollectedFieldBalls model
+
+        increase =
+            (List.length model.fieldBalls) - (List.length fieldBalls)
     in
         { model
             | fieldBalls = fieldBalls
@@ -414,11 +420,29 @@ collect model =
         elapsed =
             model.collectingTick - model.tick
     in
-        if elapsed <= 1.5 then
+        if elapsed <= -1.5 then
             { model | state = advanceCollectingSequence model.state }
                 |> collectBalls
         else
             model
+
+
+displayCollectingMeter model =
+    let
+        elapsed =
+            abs (model.collectingTick - model.tick)
+
+        width =
+            if model.state == Collecting then
+                min 120 (elapsed / 1.5 * 120)
+            else
+                0
+    in
+        group
+            [ rectangle 120 20 |> outlined (solid 1) black
+            , rectangle width 20 |> filled green
+            ]
+            |> move ( 60, 0 )
 
 
 startFiringSequence model =
@@ -536,14 +560,24 @@ displayHolding model =
         |> filled black
         |> scale 2
 
+
+displayHoldingByState model =
+    group
+        [ circle 10 |> filled black |> move ( 4, 5 )
+        , text (toString model.holding) |> filled white |> scale 1.5
+        ]
+
+
 view model =
     collage 1024
         1024
         [ displayTimer model |> move ( -500, 100 )
         , displayPosition model |> move ( -500, 50 )
         , displayHolding model |> move ( -500, 0 )
+        , displayCollectingMeter model |> move ( -500, -50 )
         , viewRobot model |> move ( 0, 300 )
         , viewGame model |> move ( 200, -200 )
+        , displayHoldingByState model |> move ( 368, 387 )
         ]
 
 
