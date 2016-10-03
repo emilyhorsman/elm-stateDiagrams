@@ -1,16 +1,7 @@
-{- A state diagram representing the autonomous mode of a robot in the FIRST
+{- A state diagram representing the gameplay of a robot in the FIRST
    Robotics Competition game, Rebound Rumble.
 
    The robot’s goal is to score points by firing basketballs into hoops.
-
-   Its autonomous mode must advance through the following sequence:
-
-   - Rotate towards other robot on alliance
-   - Collect additional basketballs from other robot (feed for 5 seconds)
-   - Rotate back to starting position
-   - Drive forward to shooting line
-   - Aim at top hoop with camera
-   - Fire until all basketballs expended or timer runs out
 -}
 
 
