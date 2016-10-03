@@ -200,6 +200,7 @@ type alias State =
 model =
     { tick = 0
     , prevTick = 0
+    , aimingTick = 0
     , holding = 2
     , state = Neutral
     , x = 0
@@ -224,7 +225,17 @@ robotCanMove state =
             False
 
 robotFacingHoops dir =
-    dir > pi / -2 && dir > pi / 2
+    dir > pi / -6 && dir < pi / 6
+
+directionTowardHoop dir =
+    if dir > pi then
+        -1
+    else if dir < pi && dir > 0 then
+        1
+    else if dir < -pi then
+        1
+    else
+        -1
 
 {- Bounds the direction between -pi*2 and pi*2 -}
 computeDirection prevDir t dX =
@@ -268,14 +279,28 @@ moveRobot ( dX, dY ) model =
 startAimingSequence model =
     { model
         | state = aimingSequence model.state
+        , aimingTick = model.tick
     }
 
 macroAim model =
     let
         t =
             model.tick - model.prevTick
+
+        elapsed =
+            model.aimingTick - model.tick
+
+        isFacingHoops =
+            robotFacingHoops model.dir
     in
-        model
+        if elapsed <= -0.15 && isFacingHoops then
+            { model | state = aimingSequence model.state }
+        else if not isFacingHoops then
+            { model
+                | dir = computeDirection model.dir t (directionTowardHoop model.dir)
+            }
+        else
+            model
 
 microAim model =
     model
