@@ -229,6 +229,18 @@ robotCanMove state =
         otherwise ->
             False
 
+{- Bounds the direction between -pi*2 and pi*2 -}
+computeDirection prevDir t dX =
+    let
+        next = prevDir - (t * dX)
+    in
+        if next > pi * 2 then
+            next - pi * 2
+        else if next < pi * -2 then
+            next + pi * 2
+        else
+            next
+
 
 moveRobot ( dX, dY ) model =
     if robotCanMove model.state then
@@ -245,7 +257,7 @@ moveRobot ( dX, dY ) model =
             { model
                 | y = model.y + (delta * (cos model.dir))
                 , x = model.x + (delta * -(sin model.dir))
-                , dir = model.dir - (t * dX)
+                , dir = computeDirection model.dir t dX
                 , state =
                     if dY == 0 && dX == 0 then
                         stoppedJoystickInput model.state
@@ -255,6 +267,24 @@ moveRobot ( dX, dY ) model =
     else
         model
 
+
+startAimingSequence model =
+    { model
+        | state = startAiming model.state
+    }
+
+macroAim model =
+    let
+        t =
+            model.tick - model.prevTick
+    in
+        model
+
+microAim model =
+    model
+
+
+startFiringSequence model = model
 
 
 -- Game
@@ -270,13 +300,25 @@ tickHandler t state =
 update msg model =
     case msg of
         Tick t ( getKeyState, joystick, _ ) ->
-            { model
-                | tick = min 90 t
-                , prevTick = model.tick
-                , joystick = joystick
-                , state = tickHandler t model.state
-            }
-                |> moveRobot joystick
+            let
+                nextModel = { model
+                    | tick = min 90 t
+                    , prevTick = model.tick
+                    , joystick = joystick
+                    , state = tickHandler t model.state
+                }
+            in
+                if (getKeyState (Key "a")) == JustDown then
+                    startAimingSequence nextModel
+                else if (getKeyState Space) == JustDown then
+                    startFiringSequence nextModel
+                else if model.state == MacroAiming then
+                    macroAim nextModel
+                else if model.state == MicroAiming then
+                    microAim nextModel
+                else
+                    nextModel
+                        |> moveRobot joystick
 
 
 viewRobot model =
