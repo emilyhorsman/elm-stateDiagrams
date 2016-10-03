@@ -14,6 +14,10 @@ import GraphicSVG exposing (..)
 import StateDiagrams exposing (..)
 
 
+robotRadius =
+    25
+
+
 type Msg
     = Tick Float GetKeyState
 
@@ -203,6 +207,12 @@ model =
     , prevTick = 0
     , aimingTick = 0
     , holding = 2
+    , fieldBalls =
+        [ ( -100, -200 )
+        , ( 100, -200 )
+        , ( 80, 80 )
+        , ( -120, 200 )
+        ]
     , state = Neutral
     , x = 0
     , y = 0
@@ -306,6 +316,30 @@ moveRobot ( dX, dY ) model =
         model
 
 
+circleCircleIntersection r1 x1 y1 r2 ( x2, y2 ) =
+    let
+        min =
+            abs r1 - r2
+
+        max =
+            r1 + r2
+
+        dX =
+            x1 - x2
+
+        dY =
+            y1 - y2
+
+        distance =
+            sqrt (dX ^ 2 + dY ^ 2)
+    in
+        distance <= min && distance <= max
+
+
+isRobotOverBall model =
+    List.any (circleCircleIntersection robotRadius model.x model.y 5) model.fieldBalls
+
+
 startAimingSequence model =
     { model
         | state = aimingSequence model.state
@@ -400,13 +434,16 @@ viewRobot model =
 drawRobot model =
     let
         colour =
-            pink
+            if isRobotOverBall model then
+                green
+            else
+                pink
 
         wheel =
             roundedRect 6 15 3 |> outlined (solid 1) colour
     in
         group
-            [ square 50 |> outlined (solid 1) colour
+            [ square (robotRadius * 2) |> outlined (solid 1) colour
             , triangle 5 |> filled colour |> rotate (pi / 2) |> move ( 0, 20 )
             , wheel |> move ( -25, 10 )
             , wheel |> move ( -25, -10 )
@@ -415,6 +452,14 @@ drawRobot model =
             ]
             |> move ( model.x, model.y )
             |> rotate model.dir
+
+
+displayBall pos =
+    circle 5 |> filled black |> move pos
+
+
+displayBalls model =
+    model.fieldBalls |> List.map displayBall |> group
 
 
 viewGame model =
@@ -428,6 +473,7 @@ viewGame model =
         [ rectangle 300 500 |> outlined (solid 2) black
         , rectangle 80 20 |> outlined (dashed 2) goalColour |> move ( 0, 260 )
         , drawRobot model
+        , displayBalls model
         ]
 
 
