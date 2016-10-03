@@ -420,10 +420,17 @@ drawRobot model =
 
 
 viewGame model =
-    [ rectangle 300 500 |> outlined (solid 2) black
-    , rectangle 80 20 |> outlined (dashed 2) black |> move ( 0, 260 )
-    , drawRobot model
-    ]
+    let
+        goalColour =
+            if robotAimed model then
+                green
+            else
+                red
+    in
+        [ rectangle 300 500 |> outlined (solid 2) black
+        , rectangle 80 20 |> outlined (dashed 2) goalColour |> move ( 0, 260 )
+        , drawRobot model
+        ]
 
 
 displayTimer model =
