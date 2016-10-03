@@ -25,192 +25,164 @@ type Msg
     = Tick Float GetKeyState
 
 
-type MotorDirection
-    = Forward
-    | Reverse
-
-
-type Feeder
-    = On MotorDirection
-    | Off
-
-
-type AimingState
-    = Checking
-    | MacroAdjusting
-    | MicroAdjusting
-
-
 type Robot
     = Neutral
     | Collecting
-    | Aiming AimingState
+    | Moving
+    | MacroAiming
+    | MicroAiming
     | Shooting
-    | FeedingBall
-
-
-
--- Feeder Component
-
-
-startFeederGame state =
-    case state of
-        Off ->
-            On Forward
-
-        otherwise ->
-            otherwise
-
-
-collectedBalls state =
-    case state of
-        On Forward ->
-            Off
-
-        otherwise ->
-            otherwise
-
-
-feederStates =
-    [ ( (Off), ( 0, 100 ) )
-    , ( (On Forward), ( 0, 0 ) )
-    ]
-
-
-feederTransitions =
-    [ ( startFeederGame
-      , "collecting started"
-      , [ ( Off, ( -25, 40 ) )
-        ]
-      )
-    , ( collectedBalls
-      , "shooting complete"
-      , [ ( On Forward, ( 25, 60 ) )
-        ]
-      )
-    ]
-
-
+    | Priming
+    | Firing
+    | GameOver
 
 -- Robot State
 
+macroToMicro state =
+    if state == MacroAiming then MicroAiming else state
 
-startRobotGame state =
+startAiming state =
+    if state == Neutral then MacroAiming else state
+
+joystickInput state =
+    Moving
+
+stoppedJoystickInput state =
+    if state == Moving then Neutral else state
+
+timerEnds state =
     case state of
-        Neutral ->
-            Collecting
+        Firing ->
+            Neutral
 
         otherwise ->
-            otherwise
+            GameOver
+
+startCollecting state =
+    if state == Neutral then Collecting else state
+
+stopCollecting state =
+    if state == Collecting then Neutral else state
+
+aimed state =
+    if state == MicroAiming then Neutral else state
+
+firingSequence capacity state =
+    if capacity > 0 then
+        case state of
+            Neutral ->
+                Shooting
+
+            Shooting ->
+                Priming
+
+            Priming ->
+                Firing
+
+            Firing ->
+                Shooting
+
+            otherwise ->
+                otherwise
+    else
+        Neutral
 
 
-autonomousTimerEnds state =
-    Neutral
-
-
-reachedCapacity state =
-    case state of
-        Collecting ->
-            Aiming Checking
-
-        otherwise ->
-            otherwise
-
-
-collectingTimerEnds state =
-    case state of
-        Collecting ->
-            Aiming Checking
-
-        otherwise ->
-            otherwise
-
-
-speedReached state =
-    case state of
-        Shooting ->
-            FeedingBall
-
-        otherwise ->
-            otherwise
-
-
-shootingTimerEnds state =
-    case state of
-        FeedingBall ->
-            Shooting
-
-        otherwise ->
-            otherwise
-
-
-depletedCapacity state =
-    case state of
-        Shooting ->
-            Collecting
-
-        otherwise ->
-            otherwise
-
-
-robotStates =
-    [ ( Neutral, ( 0, 0 ) )
-    , ( Collecting, ( 0, -100 ) )
-    , ( Aiming Checking, ( 100, -250 ) )
-    , ( Aiming MacroAdjusting, ( -100, -300 ) )
-    , ( Aiming MicroAdjusting, ( -100, -200 ) )
-    , ( Shooting, ( 0, -400 ) )
-    , ( FeedingBall, ( 0, -500 ) )
+states =
+    [ ( GameOver, ( -450, 0 ) )
+    , ( Neutral, ( -350, 0 ) )
+    , ( MacroAiming, ( -200, 75 ) )
+    , ( MicroAiming, ( -250, 125 ) )
+    , ( Collecting, ( -50, 0 ) )
+    , ( Moving, ( 100, -25 ) )
+    , ( Shooting, ( 225, -10 ) )
+    , ( Priming, ( 350, -10 ) )
+    , ( Firing, ( 350, 80 ) )
     ]
 
 
-robotTransitions =
-    [ ( startRobotGame
-      , "start game"
-      , [ ( Neutral, ( 0, -40 ) )
+transitions =
+    [ ( timerEnds
+      , "timer ends"
+      , [ ( Neutral, ( -400, 15 ) )
+        , ( MacroAiming, ( -425, 50 ) )
+        , ( MicroAiming, ( -430, 75 ) )
+        , ( Moving, ( -300, -60 ) )
+        , ( Shooting, ( -150, -75 ) )
+        , ( Priming, ( 0, -75 ) )
         ]
       )
-    , ( autonomousTimerEnds
-      , "autonomous timer ends"
-      , [ ( Collecting, ( -150, -40 ) )
-        , ( Aiming Checking, ( 200, -150 ) )
-        , ( Shooting, ( 350, -200 ) )
+    , ( macroToMicro
+      , "pointed towards"
+      , [ ( MacroAiming, ( -180, 105 ) )
         ]
       )
-    , ( speedReached
-      , "speed reached"
-      , [ ( Shooting, ( 100, -450 ) )
+    , ( startAiming
+      , "aim"
+      , [ ( Neutral, ( -290, 55 ) )
         ]
       )
-    , ( shootingTimerEnds
-      , "shooting timer ends"
-      , [ ( FeedingBall, ( -100, -450 ) )
+    , ( aimed
+      , "aimed"
+      , [ ( MicroAiming, ( -350, 40 ) )
         ]
       )
-    , ( depletedCapacity
-      , "capacity depleted"
-      , [ ( Shooting, ( -300, -200 ) )
+    , ( stoppedJoystickInput
+      , "joystick released"
+      , [ ( Moving, ( -200, -30 ) )
+        ]
+      )
+    , ( startCollecting
+      , "collect"
+      , [ ( Neutral, (-200, -10 ) )
+        ]
+      )
+    , ( stopCollecting
+      , "collected"
+      , [ ( Collecting, ( -200, 10 ) )
+        ]
+      )
+    , ( joystickInput
+      , "joystick"
+      , [ ( Neutral, ( -100, 30 ) )
+        ]
+      )
+    , ( firingSequence 1
+      , "shoot"
+      , [ ( Neutral, ( 0, 50 ) )
+        ]
+      )
+    , ( firingSequence 1
+      , "starting motors"
+      , [ ( Shooting, ( 285, 10 ) )
+        ]
+      )
+    , ( firingSequence 1
+      , "shooting speed reached"
+      , [ ( Priming, ( 375, 40 ) )
+        ]
+      )
+    , ( firingSequence 1
+      , "released"
+      , [ ( Firing, ( 200, 40 ) )
+        ]
+      )
+    , ( firingSequence 0
+      , "out of capacity"
+      , [ ( Firing, ( 0, 80 ) )
         ]
       )
     ]
 
 
-type alias State =
-    { feeder : Feeder
-    , robot : Robot
-    }
+type alias State = Robot
 
 
 model =
     { tick = 0
-    , state =
-        { feeder = Off
-        , robot = Collecting
-        }
-    , transition =
-        { feeder = ( Off, "" )
-        , robot = ( Neutral, "" )
-        }
+    , holding = 2
+    , state = Neutral
+    , transition = ( Neutral, "" )
         -- Provide what is essentially a void transition, since one is expected.
     }
 
@@ -218,7 +190,7 @@ model =
 
 -- Game
 tickHandler t state =
-    if t >= 90 then { state | robot = Neutral } else state
+    if t >= 90 then GameOver else state
 
 
 update msg model =
@@ -230,21 +202,15 @@ update msg model =
             }
 
 
-viewFeeder model =
-    [ viewStateDiagram feederStates
-        feederTransitions
-        (Just model.state.feeder)
-        (Just model.transition.feeder)
-    , rectangle 200 150 |> outlined (dashed 1) black |> move ( 0, 50 )
-    , text "Feeder" |> filled black |> move ( -95, 110 )
+viewRobot model =
+    [ viewStateDiagram states
+        transitions
+        (Just model.state)
+        (Just model.transition)
     ]
 
-
-viewRobot model =
-    [ viewStateDiagram robotStates
-        robotTransitions
-        (Just model.state.robot)
-        (Just model.transition.robot)
+viewGame model =
+    [ rectangle 300 500 |> outlined (solid 1) black
     ]
 
 
@@ -253,8 +219,8 @@ view model =
         1024
         ([ text (toString model.tick) |> filled black
          ]
-            ++ (viewFeeder model |> List.map (move ( 200, 350 )))
-            ++ (viewRobot model |> List.map (move ( 0, 200 )))
+            ++ (viewRobot model |> List.map (move ( 0, 300 )))
+            ++ (viewGame model |> List.map (move (0, -200 )))
         )
 
 
