@@ -203,6 +203,9 @@ model =
     { tick = 0
     , holding = 2
     , state = Neutral
+    , x = 0
+    , y = 0
+    , dir = 0
     , transition =
         ( Neutral, "" )
         -- Provide what is essentially a void transition, since one is expected.
@@ -237,8 +240,25 @@ viewRobot model =
     ]
 
 
+drawRobot model =
+    let
+        colour = pink
+        wheel = roundedRect 6 15 3 |> outlined (solid 1) colour
+    in
+        group [
+          square 50 |> outlined (solid 1) colour
+        , triangle 5 |> filled colour |> rotate (pi/2) |> move (0, 20)
+        , wheel |> move (-25, 10)
+        , wheel |> move (-25, -10)
+        , wheel |> move (25, 10)
+        , wheel |> move (25, -10)
+        ] |> move (model.x, model.y)
+
+
+
 viewGame model =
-    [ rectangle 300 500 |> outlined (solid 1) black
+    [ rectangle 300 500 |> outlined (solid 2) black
+    , drawRobot model
     ]
 
 
