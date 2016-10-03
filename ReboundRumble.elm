@@ -489,18 +489,17 @@ displayPosition model =
         |> scale 2
 
 
-displayAimed model =
-    text (model |> robotAimed |> toString)
+displayHolding model =
+    text (concat [ "Holding: ", model.holding |> toString ])
         |> filled black
         |> scale 2
-
 
 view model =
     collage 1024
         1024
         [ displayTimer model |> move ( -500, 100 )
         , displayPosition model |> move ( -500, 50 )
-        , displayAimed model |> move ( -500, 0 )
+        , displayHolding model |> move ( -500, 0 )
         , viewRobot model |> move ( 0, 300 )
         , viewGame model |> move ( 200, -200 )
         ]
