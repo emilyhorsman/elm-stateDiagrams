@@ -76,18 +76,16 @@ timerEnds state =
             GameOver
 
 
-startCollecting state =
-    if state == Neutral then
-        Collecting
-    else
-        state
+advanceCollectingSequence state =
+    case state of
+        Neutral ->
+            Collecting
 
+        Collecting ->
+            Neutral
 
-stopCollecting state =
-    if state == Collecting then
-        Neutral
-    else
-        state
+        otherwise ->
+            otherwise
 
 
 firingSequence capacity state =
@@ -155,12 +153,12 @@ transitions =
       , [ ( Moving, ( -200, -30 ) )
         ]
       )
-    , ( startCollecting
+    , ( advanceCollectingSequence
       , "collect"
       , [ ( Neutral, ( -200, -10 ) )
         ]
       )
-    , ( stopCollecting
+    , ( advanceCollectingSequence
       , "collected"
       , [ ( Collecting, ( -200, 10 ) )
         ]
@@ -206,6 +204,7 @@ model =
     { tick = 0
     , prevTick = 0
     , aimingTick = 0
+    , collectingTick = 0
     , holding = 2
     , fieldBalls =
         [ ( -100, -200 )
@@ -316,7 +315,9 @@ moveRobot ( dX, dY ) model =
         model
 
 
-circleCircleIntersection r1 x1 y1 r2 ( x2, y2 ) =
+type CircleCircle = Intersects | Outside
+
+circleCircleCheck check r1 x1 y1 r2 ( x2, y2 ) =
     let
         min =
             abs r1 - r2
@@ -333,11 +334,18 @@ circleCircleIntersection r1 x1 y1 r2 ( x2, y2 ) =
         distance =
             sqrt (dX ^ 2 + dY ^ 2)
     in
-        distance <= min && distance <= max
+        if check == Intersects then
+            distance <= min && distance <= max
+        else
+            distance >= min && distance >= max
 
 
 isRobotOverBall model =
-    List.any (circleCircleIntersection robotRadius model.x model.y 5) model.fieldBalls
+    List.any (circleCircleCheck Intersects robotRadius model.x model.y 5) model.fieldBalls
+
+
+removeCollectedFieldBalls model =
+    List.filter (circleCircleCheck Outside robotRadius model.x model.y 5) model.fieldBalls
 
 
 startAimingSequence model =
@@ -383,6 +391,36 @@ microAim model =
             { model | dir = computeDirection model.dir t (directionTowardHoop model.dir) }
 
 
+startCollectingSequence model =
+    { model
+        | state = advanceCollectingSequence model.state
+        , collectingTick = model.tick
+    }
+
+
+collectBalls model =
+    let
+        fieldBalls = removeCollectedFieldBalls model
+        increase = (List.length model.fieldBalls) - (List.length fieldBalls)
+    in
+        { model
+            | fieldBalls = fieldBalls
+            , holding = model.holding + increase
+        }
+
+
+collect model =
+    let
+        elapsed =
+            model.collectingTick - model.tick
+    in
+        if elapsed <= 1.5 then
+            { model | state = advanceCollectingSequence model.state }
+                |> collectBalls
+        else
+            model
+
+
 startFiringSequence model =
     model
 
@@ -414,10 +452,14 @@ update msg model =
                     startAimingSequence nextModel
                 else if (getKeyState Space) == JustDown then
                     startFiringSequence nextModel
+                else if (getKeyState (Key "c")) == JustDown then
+                    startCollectingSequence nextModel
                 else if model.state == MacroAiming then
                     macroAim nextModel
                 else if model.state == MicroAiming then
                     microAim nextModel
+                else if model.state == Collecting then
+                    collect nextModel
                 else
                     nextModel
                         |> moveRobot joystick
