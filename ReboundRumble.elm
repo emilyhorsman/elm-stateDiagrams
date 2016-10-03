@@ -230,6 +230,11 @@ moveRobot ( dX, dY ) model =
             | y = model.y + (delta * (cos model.dir))
             , x = model.x + (delta * -(sin model.dir))
             , dir = model.dir - (t * dX)
+            , state =
+                if dY == 0 then
+                    stoppedJoystickInput model.state
+                else
+                    joystickInput model.state
         }
 
 
