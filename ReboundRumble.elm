@@ -629,6 +629,30 @@ displayMotorSpeed model =
         ]
 
 
+displayControls =
+    let
+        func index str =
+            text str
+                |> filled black
+                |> scale 2
+                |> move ( 0, (toFloat index) * -30 )
+    in
+        [ "# Rebound Rumble"
+        , ""
+        , "## Instructions"
+        , "Fire basketballs into hoop (dashed)"
+        , "You have 90 seconds"
+        , ""
+        , "## Controls "
+        , "c = collect ball"
+        , "Space = shoot"
+        , "a = auto aim"
+        , "arrow keys to move"
+        ]
+            |> List.indexedMap func
+            |> group
+
+
 view model =
     collage 1024
         1024
@@ -639,6 +663,7 @@ view model =
         , viewRobot model |> move ( 0, 300 )
         , viewGame model |> move ( 200, -200 )
         , displayHoldingByState model |> move ( 368, 387 )
+        , displayControls |> move ( -500, -150 )
         ]
 
 
