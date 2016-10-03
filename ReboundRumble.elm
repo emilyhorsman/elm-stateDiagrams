@@ -7,6 +7,7 @@
 
 module Main exposing (..)
 
+import String exposing (concat)
 import List
 import GraphicSVG exposing (..)
 import StateDiagrams exposing (..)
@@ -201,15 +202,35 @@ type alias State =
 
 model =
     { tick = 0
+    , prevTick = 0
     , holding = 2
     , state = Neutral
     , x = 0
     , y = 0
     , dir = 0
+    , joystick = ( 0, 0 )
     , transition =
         ( Neutral, "" )
         -- Provide what is essentially a void transition, since one is expected.
     }
+
+
+moveRobot ( dX, dY ) model =
+    let
+        t =
+            model.tick - model.prevTick
+
+        factor =
+            100
+
+        delta =
+            factor * t * dY
+    in
+        { model
+            | y = model.y + (delta * (cos model.dir))
+            , x = model.x + (delta * -(sin model.dir))
+            , dir = model.dir - (t * dX)
+        }
 
 
 
@@ -225,11 +246,14 @@ tickHandler t state =
 
 update msg model =
     case msg of
-        Tick t _ ->
+        Tick t ( getKeyState, joystick, _ ) ->
             { model
                 | tick = min 90 t
+                , prevTick = model.tick
+                , joystick = joystick
                 , state = tickHandler t model.state
             }
+                |> moveRobot joystick
 
 
 viewRobot model =
@@ -242,18 +266,22 @@ viewRobot model =
 
 drawRobot model =
     let
-        colour = pink
-        wheel = roundedRect 6 15 3 |> outlined (solid 1) colour
-    in
-        group [
-          square 50 |> outlined (solid 1) colour
-        , triangle 5 |> filled colour |> rotate (pi/2) |> move (0, 20)
-        , wheel |> move (-25, 10)
-        , wheel |> move (-25, -10)
-        , wheel |> move (25, 10)
-        , wheel |> move (25, -10)
-        ] |> move (model.x, model.y)
+        colour =
+            pink
 
+        wheel =
+            roundedRect 6 15 3 |> outlined (solid 1) colour
+    in
+        group
+            [ square 50 |> outlined (solid 1) colour
+            , triangle 5 |> filled colour |> rotate (pi / 2) |> move ( 0, 20 )
+            , wheel |> move ( -25, 10 )
+            , wheel |> move ( -25, -10 )
+            , wheel |> move ( 25, 10 )
+            , wheel |> move ( 25, -10 )
+            ]
+            |> move ( model.x, model.y )
+            |> rotate model.dir
 
 
 viewGame model =
@@ -268,10 +296,17 @@ displayTimer model =
         |> scale 2
 
 
+displayPosition model =
+    text (concat [ model.x |> round |> toString, ", ", toString model.y, " @ ", toString model.dir ])
+        |> filled black
+        |> scale 2
+
+
 view model =
     collage 1024
         1024
         ([ displayTimer model |> move ( -500, 100 )
+         , displayPosition model |> move ( -500, 50 )
          ]
             ++ (viewRobot model |> List.map (move ( 0, 300 )))
             ++ (viewGame model |> List.map (move ( 200, -200 )))
