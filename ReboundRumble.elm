@@ -229,6 +229,9 @@ robotCanMove state =
         otherwise ->
             False
 
+robotFacingHoops dir =
+    dir > pi / -2 && dir > pi / 2
+
 {- Bounds the direction between -pi*2 and pi*2 -}
 computeDirection prevDir t dX =
     let
