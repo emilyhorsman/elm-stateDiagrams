@@ -27,19 +27,35 @@ type Robot
     | Firing
     | GameOver
 
+
+
 -- Robot State
 
+
 macroToMicro state =
-    if state == MacroAiming then MicroAiming else state
+    if state == MacroAiming then
+        MicroAiming
+    else
+        state
+
 
 startAiming state =
-    if state == Neutral then MacroAiming else state
+    if state == Neutral then
+        MacroAiming
+    else
+        state
+
 
 joystickInput state =
     Moving
 
+
 stoppedJoystickInput state =
-    if state == Moving then Neutral else state
+    if state == Moving then
+        Neutral
+    else
+        state
+
 
 timerEnds state =
     case state of
@@ -49,14 +65,27 @@ timerEnds state =
         otherwise ->
             GameOver
 
+
 startCollecting state =
-    if state == Neutral then Collecting else state
+    if state == Neutral then
+        Collecting
+    else
+        state
+
 
 stopCollecting state =
-    if state == Collecting then Neutral else state
+    if state == Collecting then
+        Neutral
+    else
+        state
+
 
 aimed state =
-    if state == MicroAiming then Neutral else state
+    if state == MicroAiming then
+        Neutral
+    else
+        state
+
 
 firingSequence capacity state =
     if capacity > 0 then
@@ -125,7 +154,7 @@ transitions =
       )
     , ( startCollecting
       , "collect"
-      , [ ( Neutral, (-200, -10 ) )
+      , [ ( Neutral, ( -200, -10 ) )
         ]
       )
     , ( stopCollecting
@@ -166,30 +195,37 @@ transitions =
     ]
 
 
-type alias State = Robot
+type alias State =
+    Robot
 
 
 model =
     { tick = 0
     , holding = 2
     , state = Neutral
-    , transition = ( Neutral, "" )
+    , transition =
+        ( Neutral, "" )
         -- Provide what is essentially a void transition, since one is expected.
     }
 
 
 
 -- Game
+
+
 tickHandler t state =
-    if t >= 90 then GameOver else state
+    if t >= 90 then
+        GameOver
+    else
+        state
 
 
 update msg model =
     case msg of
         Tick t _ ->
             { model
-            | tick = min 90 t
-            , state = tickHandler t model.state
+                | tick = min 90 t
+                , state = tickHandler t model.state
             }
 
 
@@ -200,6 +236,7 @@ viewRobot model =
         (Just model.transition)
     ]
 
+
 viewGame model =
     [ rectangle 300 500 |> outlined (solid 1) black
     ]
@@ -207,16 +244,17 @@ viewGame model =
 
 displayTimer model =
     text ("Time: " ++ (model.tick |> round |> toString))
-    |> filled black
-    |> scale 2
+        |> filled black
+        |> scale 2
+
 
 view model =
     collage 1024
         1024
-        ([ displayTimer model |> move (-500, 100)
+        ([ displayTimer model |> move ( -500, 100 )
          ]
             ++ (viewRobot model |> List.map (move ( 0, 300 )))
-            ++ (viewGame model |> List.map (move (200, -200 )))
+            ++ (viewGame model |> List.map (move ( 200, -200 )))
         )
 
 
