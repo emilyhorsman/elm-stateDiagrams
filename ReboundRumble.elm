@@ -7,6 +7,7 @@
 
 module Main exposing (..)
 
+import Debug exposing (log)
 import String exposing (concat)
 import List
 import GraphicSVG exposing (..)
@@ -224,8 +225,34 @@ robotCanMove state =
         otherwise ->
             False
 
+
 robotFacingHoops dir =
     dir > pi / -6 && dir < pi / 6
+
+
+robotAimed model =
+    let
+        m =
+            tan -model.dir
+
+        x1 =
+            model.x
+
+        y1 =
+            model.y
+
+        y =
+            250
+
+        -- Hoop
+        x =
+            if model.dir == 0 then
+                model.x
+            else
+                (y - y1) * m + x1
+    in
+        robotFacingHoops model.dir && x >= -40 && x <= 40
+
 
 directionTowardHoop dir =
     if dir > pi then
@@ -237,10 +264,15 @@ directionTowardHoop dir =
     else
         -1
 
+
+
 {- Bounds the direction between -pi*2 and pi*2 -}
+
+
 computeDirection prevDir t dX =
     let
-        next = prevDir - (t * dX)
+        next =
+            prevDir - (t * dX)
     in
         if next > pi * 2 then
             next - pi * 2
@@ -282,6 +314,7 @@ startAimingSequence model =
         , aimingTick = model.tick
     }
 
+
 macroAim model =
     let
         t =
@@ -296,17 +329,31 @@ macroAim model =
         if elapsed <= -0.15 && isFacingHoops then
             { model | state = aimingSequence model.state }
         else if not isFacingHoops then
-            { model
-                | dir = computeDirection model.dir t (directionTowardHoop model.dir)
-            }
+            { model | dir = computeDirection model.dir t (directionTowardHoop model.dir) }
         else
             model
 
+
 microAim model =
+    let
+        t =
+            model.tick - model.prevTick
+
+        elapsed =
+            model.aimingTick - model.tick
+
+        isAimed =
+            robotAimed model
+    in
+        if isAimed then
+            { model | state = aimingSequence model.state }
+        else
+            { model | dir = computeDirection model.dir t (directionTowardHoop model.dir) }
+
+
+startFiringSequence model =
     model
 
-
-startFiringSequence model = model
 
 
 -- Game
@@ -323,12 +370,13 @@ update msg model =
     case msg of
         Tick t ( getKeyState, joystick, _ ) ->
             let
-                nextModel = { model
-                    | tick = min 90 t
-                    , prevTick = model.tick
-                    , joystick = joystick
-                    , state = tickHandler t model.state
-                }
+                nextModel =
+                    { model
+                        | tick = min 90 t
+                        , prevTick = model.tick
+                        , joystick = joystick
+                        , state = tickHandler t model.state
+                    }
             in
                 if (getKeyState (Key "a")) == JustDown then
                     startAimingSequence nextModel
@@ -373,6 +421,7 @@ drawRobot model =
 
 viewGame model =
     [ rectangle 300 500 |> outlined (solid 2) black
+    , rectangle 80 20 |> outlined (dashed 2) black |> move ( 0, 260 )
     , drawRobot model
     ]
 
@@ -389,11 +438,18 @@ displayPosition model =
         |> scale 2
 
 
+displayAimed model =
+    text (model |> robotAimed |> toString)
+        |> filled black
+        |> scale 2
+
+
 view model =
     collage 1024
         1024
         ([ displayTimer model |> move ( -500, 100 )
          , displayPosition model |> move ( -500, 50 )
+         , displayAimed model |> move ( -500, 0 )
          ]
             ++ (viewRobot model |> List.map (move ( 0, 300 )))
             ++ (viewGame model |> List.map (move ( 200, -200 )))
