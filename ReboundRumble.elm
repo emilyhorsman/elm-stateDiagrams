@@ -424,11 +424,10 @@ update msg model =
 
 
 viewRobot model =
-    [ viewStateDiagram states
+    viewStateDiagram states
         transitions
         (Just model.state)
         (Just model.transition)
-    ]
 
 
 drawRobot model =
@@ -475,6 +474,7 @@ viewGame model =
         , drawRobot model
         , displayBalls model
         ]
+            |> group
 
 
 displayTimer model =
@@ -498,13 +498,12 @@ displayAimed model =
 view model =
     collage 1024
         1024
-        ([ displayTimer model |> move ( -500, 100 )
-         , displayPosition model |> move ( -500, 50 )
-         , displayAimed model |> move ( -500, 0 )
-         ]
-            ++ (viewRobot model |> List.map (move ( 0, 300 )))
-            ++ (viewGame model |> List.map (move ( 200, -200 )))
-        )
+        [ displayTimer model |> move ( -500, 100 )
+        , displayPosition model |> move ( -500, 50 )
+        , displayAimed model |> move ( -500, 0 )
+        , viewRobot model |> move ( 0, 300 )
+        , viewGame model |> move ( 200, -200 )
+        ]
 
 
 main =
