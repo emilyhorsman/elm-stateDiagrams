@@ -429,24 +429,6 @@ collect model =
             model
 
 
-displayCollectingMeter model =
-    let
-        elapsed =
-            abs (model.collectingTick - model.tick)
-
-        width =
-            if model.state == Collecting then
-                min 120 (elapsed / 1.5 * 120)
-            else
-                0
-    in
-        group
-            [ rectangle 120 20 |> outlined (solid 1) black
-            , rectangle width 20 |> filled green
-            ]
-            |> move ( 60, 0 )
-
-
 startFiringSequence model =
     { model
         | state = firingSequence model.holding model.state
@@ -463,29 +445,34 @@ firing model =
             model.firingTick - model.tick
 
         firingMotorSpeed =
-            model.firingMotorSpeed + delta
+            if model.state == Priming then
+                min 2 (model.firingMotorSpeed + delta)
+            else
+                max 0 (model.firingMotorSpeed - delta)
     in
         if elapsed <= -0.5 && model.state == Shooting then
             { model
                 | state = Priming
                 , firingTick = model.tick
+                , firingMotorSpeed = firingMotorSpeed
             }
         else if firingMotorSpeed >= 2 && model.state == Priming then
             { model
                 | state = firingSequence model.holding model.state
                 , firingTick = model.tick
+                , firingMotorSpeed = firingMotorSpeed
             }
         else if model.state == Priming then
             { model | firingMotorSpeed = firingMotorSpeed }
         else if elapsed <= 0.5 && model.state == Firing then
             { model
-                | firingMotorSpeed = 1.2
-                , holding = model.holding - 1
+                | holding = model.holding - 1
                 , state = firingSequence (model.holding - 1) model.state
                 , firingTick = model.tick
+                , firingMotorSpeed = firingMotorSpeed
             }
         else
-            model
+            { model | firingMotorSpeed = firingMotorSpeed }
 
 
 inFiringSequence state =
@@ -594,12 +581,6 @@ displayTimer model =
         |> scale 2
 
 
-displayPosition model =
-    text (concat [ model.x |> round |> toString, ", ", toString model.y, " @ ", toString model.dir ])
-        |> filled black
-        |> scale 2
-
-
 displayHolding model =
     text (concat [ "Holding: ", model.holding |> toString ])
         |> filled black
@@ -613,13 +594,48 @@ displayHoldingByState model =
         ]
 
 
+displayMeter display elapsed duration =
+    let
+        width =
+            if display then
+                min 120 (elapsed / duration * 120)
+            else
+                0
+    in
+        group
+            [ rectangle 120 20 |> outlined (solid 1) black
+            , rectangle width 20 |> filled green
+            ]
+            |> move ( 60, 0 )
+
+
+displayCollectingMeter model =
+    let
+        elapsed =
+            abs (model.collectingTick - model.tick)
+    in
+        group
+            [ text "Collecting " |> filled black |> scale 2
+            , displayMeter (model.state == Collecting) elapsed 1.5
+                |> move ( 140, 7 )
+            ]
+
+
+displayMotorSpeed model =
+    group
+        [ text "Firing Motor" |> filled black |> scale 2
+        , displayMeter (inFiringSequence model.state) model.firingMotorSpeed 2
+            |> move ( 140, 7 )
+        ]
+
+
 view model =
     collage 1024
         1024
         [ displayTimer model |> move ( -500, 100 )
-        , displayPosition model |> move ( -500, 50 )
-        , displayHolding model |> move ( -500, 0 )
-        , displayCollectingMeter model |> move ( -500, -50 )
+        , displayHolding model |> move ( -500, 50 )
+        , displayCollectingMeter model |> move ( -500, 0 )
+        , displayMotorSpeed model |> move ( -500, -50 )
         , viewRobot model |> move ( 0, 300 )
         , viewGame model |> move ( 200, -200 )
         , displayHoldingByState model |> move ( 368, 387 )
