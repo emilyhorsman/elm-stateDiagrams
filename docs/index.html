@@ -13097,7 +13097,7 @@ var _user$project$Main$computeDirection = F3(
 		return (_elm_lang$core$Native_Utils.cmp(next, _elm_lang$core$Basics$pi * 2) > 0) ? (next - (_elm_lang$core$Basics$pi * 2)) : ((_elm_lang$core$Native_Utils.cmp(next, _elm_lang$core$Basics$pi * -2) < 0) ? (next + (_elm_lang$core$Basics$pi * 2)) : next);
 	});
 var _user$project$Main$directionTowardHoop = function (dir) {
-	return (_elm_lang$core$Native_Utils.cmp(dir, _elm_lang$core$Basics$pi) > 0) ? -1 : (((_elm_lang$core$Native_Utils.cmp(dir, _elm_lang$core$Basics$pi) < 0) && (_elm_lang$core$Native_Utils.cmp(dir, 0) > 0)) ? 1 : ((_elm_lang$core$Native_Utils.cmp(dir, 0 - _elm_lang$core$Basics$pi) < 0) ? 1 : -1));
+	return (_elm_lang$core$Native_Utils.cmp(dir, _elm_lang$core$Basics$pi) > 0) ? -1 : (((_elm_lang$core$Native_Utils.cmp(dir, _elm_lang$core$Basics$pi) < 0) && (_elm_lang$core$Native_Utils.cmp(dir, -4.0e-3) > 0)) ? 1 : ((_elm_lang$core$Native_Utils.cmp(dir, 0 - _elm_lang$core$Basics$pi) < 0) ? 1 : -1));
 };
 var _user$project$Main$robotFacingHoops = function (dir) {
 	return (_elm_lang$core$Native_Utils.cmp(dir, _elm_lang$core$Basics$pi / -6) > 0) && (_elm_lang$core$Native_Utils.cmp(dir, _elm_lang$core$Basics$pi / 6) < 0);
