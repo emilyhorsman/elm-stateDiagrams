@@ -48,7 +48,10 @@ startAiming state =
 
 
 joystickInput state =
-    Moving
+    if state == Neutral then
+        Moving
+    else
+        state
 
 
 stoppedJoystickInput state =
@@ -215,27 +218,42 @@ model =
     }
 
 
+robotCanMove state =
+    case state of
+        Neutral ->
+            True
+
+        Moving ->
+            True
+
+        otherwise ->
+            False
+
+
 moveRobot ( dX, dY ) model =
-    let
-        t =
-            model.tick - model.prevTick
+    if robotCanMove model.state then
+        let
+            t =
+                model.tick - model.prevTick
 
-        factor =
-            100
+            factor =
+                100
 
-        delta =
-            factor * t * dY
-    in
-        { model
-            | y = model.y + (delta * (cos model.dir))
-            , x = model.x + (delta * -(sin model.dir))
-            , dir = model.dir - (t * dX)
-            , state =
-                if dY == 0 then
-                    stoppedJoystickInput model.state
-                else
-                    joystickInput model.state
-        }
+            delta =
+                factor * t * dY
+        in
+            { model
+                | y = model.y + (delta * (cos model.dir))
+                , x = model.x + (delta * -(sin model.dir))
+                , dir = model.dir - (t * dX)
+                , state =
+                    if dY == 0 && dX == 0 then
+                        stoppedJoystickInput model.state
+                    else
+                        joystickInput model.state
+            }
+    else
+        model
 
 
 
