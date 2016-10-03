@@ -188,7 +188,7 @@ update msg model =
     case msg of
         Tick t _ ->
             { model
-            | tick = t
+            | tick = min 90 t
             , state = tickHandler t model.state
             }
 
@@ -205,13 +205,18 @@ viewGame model =
     ]
 
 
+displayTimer model =
+    text ("Time: " ++ (model.tick |> round |> toString))
+    |> filled black
+    |> scale 2
+
 view model =
     collage 1024
         1024
-        ([ text (toString model.tick) |> filled black
+        ([ displayTimer model |> move (-500, 100)
          ]
             ++ (viewRobot model |> List.map (move ( 0, 300 )))
-            ++ (viewGame model |> List.map (move (0, -200 )))
+            ++ (viewGame model |> List.map (move (200, -200 )))
         )
 
 
