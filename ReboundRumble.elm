@@ -33,18 +33,19 @@ type Robot
 -- Robot State
 
 
-macroToMicro state =
-    if state == MacroAiming then
-        MicroAiming
-    else
-        state
+aimingSequence state =
+    case state of
+        Neutral ->
+            MacroAiming
 
+        MacroAiming ->
+            MicroAiming
 
-startAiming state =
-    if state == Neutral then
-        MacroAiming
-    else
-        state
+        MicroAiming ->
+            Neutral
+
+        otherwise ->
+            otherwise
 
 
 joystickInput state =
@@ -79,13 +80,6 @@ startCollecting state =
 
 stopCollecting state =
     if state == Collecting then
-        Neutral
-    else
-        state
-
-
-aimed state =
-    if state == MicroAiming then
         Neutral
     else
         state
@@ -136,17 +130,17 @@ transitions =
         , ( Priming, ( 0, -75 ) )
         ]
       )
-    , ( macroToMicro
+    , ( aimingSequence
       , "pointed towards"
       , [ ( MacroAiming, ( -180, 105 ) )
         ]
       )
-    , ( startAiming
+    , ( aimingSequence
       , "aim"
       , [ ( Neutral, ( -290, 55 ) )
         ]
       )
-    , ( aimed
+    , ( aimingSequence
       , "aimed"
       , [ ( MicroAiming, ( -350, 40 ) )
         ]
@@ -273,7 +267,7 @@ moveRobot ( dX, dY ) model =
 
 startAimingSequence model =
     { model
-        | state = startAiming model.state
+        | state = aimingSequence model.state
     }
 
 macroAim model =
