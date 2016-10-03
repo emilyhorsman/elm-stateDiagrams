@@ -205,6 +205,8 @@ model =
     , prevTick = 0
     , aimingTick = 0
     , collectingTick = 0
+    , firingTick = 0
+    , firingMotorSpeed = 0
     , holding = 2
     , fieldBalls =
         [ ( -100, -200 )
@@ -446,7 +448,48 @@ displayCollectingMeter model =
 
 
 startFiringSequence model =
-    model
+    { model
+        | state = firingSequence model.holding model.state
+        , firingTick = model.tick
+    }
+
+
+firing model =
+    let
+        delta =
+            model.tick - model.prevTick
+
+        elapsed =
+            model.firingTick - model.tick
+
+        firingMotorSpeed =
+            model.firingMotorSpeed + delta
+    in
+        if elapsed <= -0.5 && model.state == Shooting then
+            { model
+                | state = Priming
+                , firingTick = model.tick
+            }
+        else if firingMotorSpeed >= 2 && model.state == Priming then
+            { model
+                | state = firingSequence model.holding model.state
+                , firingTick = model.tick
+            }
+        else if model.state == Priming then
+            { model | firingMotorSpeed = firingMotorSpeed }
+        else if elapsed <= 0.5 && model.state == Firing then
+            { model
+                | firingMotorSpeed = 1.2
+                , holding = model.holding - 1
+                , state = firingSequence (model.holding - 1) model.state
+                , firingTick = model.tick
+            }
+        else
+            model
+
+
+inFiringSequence state =
+    List.member state [ Shooting, Priming, Firing ]
 
 
 
@@ -484,6 +527,8 @@ update msg model =
                     microAim nextModel
                 else if model.state == Collecting then
                     collect nextModel
+                else if inFiringSequence model.state then
+                    firing nextModel
                 else
                     nextModel
                         |> moveRobot joystick
